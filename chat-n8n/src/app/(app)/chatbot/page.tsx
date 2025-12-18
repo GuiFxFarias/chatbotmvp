@@ -11,7 +11,7 @@ type Message = {
 };
 
 const WEBHOOK_URL =
-  'https://guifariasstatum.app.n8n.cloud/webhook-test/send-message';
+  'https://guifariasstatum.app.n8n.cloud/webhook/send-message';
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
