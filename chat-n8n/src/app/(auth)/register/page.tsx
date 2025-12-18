@@ -1,39 +1,65 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
+import { apiCadastrarUsuario } from './api/apiCadastraUsuario';
+import { FormattedInput } from '@/components/ui/patternFormatComp';
 import Link from 'next/link';
 
+const formSchema = z.object({
+  nome: z.string().min(3, 'Informe um nome válido'),
+  email: z.string().email('E-mail inválido'),
+  telefone: z.string().min(8, 'Informe um telefone válido'),
+  senha: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
 export default function RegisterPage() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const [mostrarSenha, setMostrarSenha] = useState(false);
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      nome: '',
+      email: '',
+      telefone: '',
+      senha: '',
+    },
+  });
 
-    if (password !== confirm) {
-      setError('As senhas não coincidem.');
-      return;
-    }
+  const { mutate: cadastrar, isPending } = useMutation({
+    mutationFn: apiCadastrarUsuario,
+    onSuccess: () => {
+      toast.success('Usuário cadastrado com sucesso!');
+      toast.success('Redirecionando para o login');
+      setTimeout(() => router.push('/login'), 1500);
+    },
+    onError: (error) => {
+      toast.error(error?.message || 'Erro ao cadastrar usuário');
+    },
+  });
 
-    setLoading(true);
-
-    try {
-      // Aqui você pode chamar /api/register ou um webhook no n8n
-      await new Promise((res) => setTimeout(res, 1000));
-
-      // Exemplo: redireciona para login depois de "cadastrar"
-      window.location.href = '/login';
-    } catch {
-      setError('Não foi possível criar sua conta. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
-  }
+  const onSubmit = (values: FormValues) => {
+    cadastrar(values);
+  };
 
   return (
     <main className='min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900 px-4 py-6'>
@@ -62,103 +88,131 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className='space-y-4'>
-            <div className='space-y-1'>
-              <label
-                htmlFor='name'
-                className='block text-xs font-medium text-slate-200'
-              >
-                Nome completo
-              </label>
-              <input
-                id='name'
-                type='text'
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className='w-full rounded-2xl border border-slate-700/70 bg-slate-950/80 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-transparent'
-                placeholder='Seu nome'
-              />
-            </div>
-
-            <div className='space-y-1'>
-              <label
-                htmlFor='email'
-                className='block text-xs font-medium text-slate-200'
-              >
-                E-mail corporativo
-              </label>
-              <input
-                id='email'
-                type='email'
-                autoComplete='email'
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className='w-full rounded-2xl border border-slate-700/70 bg-slate-950/80 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-transparent'
-                placeholder='voce@empresa.com'
-              />
-            </div>
-
-            <div className='space-y-1'>
-              <label
-                htmlFor='password'
-                className='block text-xs font-medium text-slate-200'
-              >
-                Senha
-              </label>
-              <input
-                id='password'
-                type='password'
-                autoComplete='new-password'
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className='w-full rounded-2xl border border-slate-700/70 bg-slate-950/80 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-transparent'
-                placeholder='Mínimo 8 caracteres'
-              />
-            </div>
-
-            <div className='space-y-1'>
-              <label
-                htmlFor='confirm'
-                className='block text-xs font-medium text-slate-200'
-              >
-                Confirmar senha
-              </label>
-              <input
-                id='confirm'
-                type='password'
-                autoComplete='new-password'
-                required
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                className='w-full rounded-2xl border border-slate-700/70 bg-slate-950/80 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-transparent'
-                placeholder='Repita a senha'
-              />
-            </div>
-
-            {error && (
-              <div className='rounded-2xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200'>
-                {error}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+              <div className='space-y-1'>
+                <FormField
+                  control={form.control}
+                  name='nome'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className='block text-xs font-medium text-slate-200'>
+                        Nome
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder='Digite seu nome'
+                          className='w-full rounded-2xl border border-slate-700/70 bg-slate-950/80 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-transparent'
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-            )}
 
-            <button
-              type='submit'
-              disabled={loading}
-              className='mt-2 w-full inline-flex items-center justify-center rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:bg-emerald-600/60 disabled:cursor-not-allowed text-sm font-medium text-white px-4 py-2.5 shadow-lg shadow-emerald-500/25 transition-all active:scale-[0.98]'
-            >
-              {loading ? (
-                <span className='flex items-center gap-2'>
-                  <span className='h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin' />
-                  Criando conta...
-                </span>
-              ) : (
-                'Criar conta'
-              )}
-            </button>
-          </form>
+              <div className='space-y-1'>
+                <FormField
+                  control={form.control}
+                  name='email'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className='block text-xs font-medium text-slate-200'>
+                        E-mail
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type='email'
+                          className='w-full rounded-2xl border border-slate-700/70 bg-slate-950/80 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-transparent'
+                          placeholder='exemplo@email.com'
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className='space-y-1'>
+                <FormField
+                  control={form.control}
+                  name='telefone'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className='block text-xs font-medium text-slate-200'>
+                        Telefone
+                      </FormLabel>
+                      <FormControl>
+                        <FormattedInput
+                          {...field}
+                          className='w-full rounded-2xl border border-slate-700/70 bg-slate-950/80 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-transparent'
+                          format='(##) #####-####'
+                          onValueChange={(values: { value: unknown }) => {
+                            field.onChange(values.value);
+                          }}
+                          placeholder='(11) 91234-5678'
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className='space-y-1'>
+                <FormField
+                  control={form.control}
+                  name='senha'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className='block text-xs font-medium text-slate-200'>
+                        Senha
+                      </FormLabel>
+                      <div className='relative'>
+                        <FormControl>
+                          <Input
+                            type={mostrarSenha ? 'text' : 'password'}
+                            placeholder='Crie uma senha'
+                            {...field}
+                            className='w-full rounded-2xl border border-slate-700/70 bg-slate-950/80 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-transparent'
+                          />
+                        </FormControl>
+                        <button
+                          type='button'
+                          onClick={() => setMostrarSenha((prev) => !prev)}
+                          className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-500'
+                        >
+                          {mostrarSenha ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
+                        </button>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <Button
+                type='submit'
+                className='mt-2 w-full inline-flex items-center justify-center rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:bg-emerald-600/60 disabled:cursor-not-allowed text-sm font-medium text-white px-4 py-2.5 shadow-lg shadow-emerald-500/25 transition-all active:scale-[0.98]'
+                disabled={isPending}
+              >
+                {isPending ? (
+                  <span className='flex items-center gap-2'>
+                    <span className='h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin' />
+                    Criando conta...
+                  </span>
+                ) : (
+                  'Cadastrar'
+                )}
+              </Button>
+            </form>
+          </Form>
 
           <div className='mt-5 text-center'>
             <p className='text-xs text-slate-400'>

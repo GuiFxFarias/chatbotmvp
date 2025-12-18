@@ -56,7 +56,6 @@ export default function LoginPageComponente() {
       const resJson = await res.json();
 
       if (res.ok) {
-        const usuario = resJson.usuario;
         const { token, expiration } = resJson.value;
 
         setCookie('token', token, {
@@ -66,11 +65,8 @@ export default function LoginPageComponente() {
           sameSite: 'lax',
         });
 
-        sessionStorage.setItem('token', token);
-        sessionStorage.setItem('usuarioEmail', usuario.email);
-
         toast.success('Login realizado');
-        router.push('/dashboards');
+        router.push('/dashboard');
       } else {
         toast.error(`Autenticação falhou: ${resJson?.erro}`);
       }

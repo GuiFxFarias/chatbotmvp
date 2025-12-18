@@ -11,7 +11,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang='pt-br'>
-      <body className='h-screen antialiased'>
+      <body className='h-screen'>
         <Query>{children}</Query>
       </body>
     </html>

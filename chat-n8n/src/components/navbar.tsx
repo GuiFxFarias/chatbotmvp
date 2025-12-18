@@ -1,7 +1,10 @@
 'use client';
 
+import { apiLogout } from '@/app/(auth)/login/api/apiLogout';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 const navItems = [
   { name: 'Chatbot', href: '/chatbot' },
@@ -10,6 +13,21 @@ const navItems = [
 
 export function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  async function handleLogout() {
+    try {
+      setLoading(true);
+      await apiLogout();
+      toast.success('Sessão encerrada');
+      router.push('/login');
+    } catch {
+      toast.error('Erro ao sair');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <nav className='sticky top-0 z-30 border-b border-white/10 bg-slate-950/80 backdrop-blur-xl'>
@@ -48,12 +66,14 @@ export function Navbar() {
             );
           })}
 
-          <Link
-            href='/login'
-            className='text-xs font-medium px-3 py-1.5 rounded-2xl border border-emerald-400/70 bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/30 transition-colors'
+          <button
+            type='button'
+            onClick={handleLogout}
+            disabled={loading}
+            className='text-xs cursor-pointer font-medium px-3 py-1.5 rounded-2xl border border-emerald-400/70 bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/30 disabled:opacity-60 disabled:cursor-not-allowed transition-colors'
           >
-            Login
-          </Link>
+            {loading ? 'Saindo...' : 'Sair'}
+          </button>
         </div>
       </div>
     </nav>
