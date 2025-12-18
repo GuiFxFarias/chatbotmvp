@@ -1,10 +1,9 @@
 // app/layout.tsx
-import './globals.css';
 import { ReactNode } from 'react';
-import Query from './layoutCliente'; // client component
+import { Navbar } from '@/components/navbar';
 
 export const metadata = {
-  title: 'HubAI',
+  title: 'Power Moendas',
   description: 'Dashboards e integrações',
 };
 
@@ -12,7 +11,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang='pt-br'>
       <body className='h-screen antialiased'>
-        <Query>{children}</Query>
+        <Navbar />
+        {children}
       </body>
     </html>
   );

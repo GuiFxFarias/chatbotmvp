@@ -1,6 +1,7 @@
 'use client';
 
-import { FormEvent, KeyboardEvent, useState } from 'react';
+import { FormEvent, KeyboardEvent, useEffect, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid'; // npm i uuid
 
 type Message = {
   id: number;
@@ -17,6 +18,7 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [idCounter, setIdCounter] = useState(0);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   function addMessage(role: 'user' | 'bot', content: string) {
     setMessages((prev) => [
@@ -34,9 +36,20 @@ export default function ChatPage() {
     setIdCounter((prev) => prev + 1);
   }
 
+  useEffect(() => {
+    // roda só no cliente
+    let stored = localStorage.getItem('chatSessionId');
+    if (!stored) {
+      stored = uuidv4();
+      localStorage.setItem('chatSessionId', stored);
+    }
+    setSessionId(stored);
+  }, []);
+
   async function handleSubmit(e?: FormEvent) {
     if (e) e.preventDefault();
     if (!input.trim() || loading) return;
+    if (!input.trim() || loading || !sessionId) return;
 
     const text = input.trim();
     setInput('');
@@ -49,7 +62,7 @@ export default function ChatPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, sessionId }),
       });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
