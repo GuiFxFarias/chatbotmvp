@@ -63,7 +63,6 @@ export default function ChatPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ message: text, sessionId }),
-        credentials: 'include',
       });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
