@@ -63,7 +63,6 @@ export default function ChatPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ message: text, sessionId }),
-        credentials: 'include',
       });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -162,9 +161,9 @@ export default function ChatPage() {
               </div>
             )}
 
-            {messages.map((m) => (
+            {messages.map((m, i) => (
               <div
-                key={m.id}
+                key={i}
                 className={`flex ${
                   m.role === 'user' ? 'justify-end' : 'justify-start'
                 }`}
