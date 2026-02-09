@@ -83,7 +83,7 @@ export default function ChatPage() {
 
       addMessage('bot', replyText || '[Resposta vazia]');
     } catch {
-      addMessage('bot', `Erro ao chamar o webhook: `);
+      addMessage('bot', `Travei na resposta 😵‍💫 Tente novamente.`);
     } finally {
       setLoading(false);
     }
